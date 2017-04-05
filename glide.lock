@@ -1,0 +1,38 @@
+hash: 4b1632732d2e19bc286bddb87b1a841c429732a53d7072b695c4938805109ee3
+updated: 2017-04-05T18:28:42.032975766+02:00
+imports:
+- name: github.com/go-yaml/yaml
+  version: a3f3340b5840cee44f372bddb5880fcbc419b46a
+- name: github.com/golang/protobuf
+  version: 2bba0603135d7d7f5cb73b2125beeda19c09f4ef
+  subpackages:
+  - proto
+- name: github.com/google/go-github
+  version: 12363ffc10018c93407ebf303040586d55957271
+  subpackages:
+  - github
+- name: github.com/google/go-querystring
+  version: 53e6ce116135b80d037921a7fdd5138cf32d7a8a
+  subpackages:
+  - query
+- name: golang.org/x/net
+  version: ffcf1bedda3b04ebb15a168a59800a73d6dc0f4d
+  subpackages:
+  - context
+- name: golang.org/x/oauth2
+  version: 7fdf09982454086d5570c7db3e11f360194830ca
+  subpackages:
+  - internal
+- name: google.golang.org/appengine
+  version: 56d253d1dd14aa01937e12c73a0971bcfd797ff2
+  subpackages:
+  - urlfetch
+  - internal
+  - internal/app_identity
+  - internal/modules
+  - internal/urlfetch
+  - internal/base
+  - internal/datastore
+  - internal/log
+  - internal/remote_api
+devImports: []

@@ -1,0 +1,5 @@
+userMap:
+  team: team-name # team name in slack
+  users:
+    - github: obukhov # username in github
+      slack: obukhov # username in slack
