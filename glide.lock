@@ -1,8 +1,10 @@
-hash: 4b1632732d2e19bc286bddb87b1a841c429732a53d7072b695c4938805109ee3
-updated: 2017-04-05T18:28:42.032975766+02:00
+hash: a01c0c94aef38b11db3fc0b487eb91c9c4fcd0ea37869040ced6c7f391fb11af
+updated: 2017-04-10T19:01:50.836597162+02:00
 imports:
+- name: github.com/dustin/go-humanize
+  version: 259d2a102b871d17f30e3cd9881a642961a1e486
 - name: github.com/go-yaml/yaml
-  version: a3f3340b5840cee44f372bddb5880fcbc419b46a
+  version: cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b
 - name: github.com/golang/protobuf
   version: 2bba0603135d7d7f5cb73b2125beeda19c09f4ef
   subpackages:

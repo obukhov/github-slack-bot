@@ -2,3 +2,4 @@ package: github.com/obukhov/github-slack-bot
 import:
 - package: github.com/google/go-github
 - package: golang.org/x/oauth2
+- package: github.com/dustin/go-humanize

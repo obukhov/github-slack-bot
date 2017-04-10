@@ -1,25 +1,39 @@
 package domain
 
+import "errors"
+
 type UserMap struct {
-	userMap map[string]string
+	githubUserToSlackUser map[string]string
+	slackUserToChannel    map[string]string
 }
 
-func NewUserMap(userMap map[string]string) *UserMap {
-	return &UserMap{userMap: userMap}
+func NewUserMap() *UserMap {
+	return &UserMap{
+		githubUserToSlackUser: make(map[string]string),
+		slackUserToChannel:    make(map[string]string),
+	}
 }
 
-func (um *UserMap) GetUserName(user string) string {
-	name, found := um.userMap[user]
-
-	if true == found {
-		return name
+func (um *UserMap) AddUserTeam(channelName, githubUserName, slackUserName string) error {
+	if um.HasGithubUser(githubUserName) {
+		return errors.New("User already exist")
 	}
 
-	return user
+	um.githubUserToSlackUser[githubUserName] = slackUserName
+	um.slackUserToChannel[slackUserName] = channelName
+
+	return nil
 }
 
-func (um *UserMap) IsDefined(user string) bool {
-	_, found := um.userMap[user]
+func (um *UserMap) HasGithubUser(user string) bool {
+	_, ok := um.githubUserToSlackUser[user]
+	return ok
+}
 
-	return found
+func (um *UserMap) SlackUserName(githubUserName string) string {
+	return um.githubUserToSlackUser[githubUserName]
+}
+
+func (um *UserMap) Channel(slackUserName string) string {
+	return um.slackUserToChannel[slackUserName]
 }

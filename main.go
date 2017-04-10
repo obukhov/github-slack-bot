@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"time"
+	"github.com/dustin/go-humanize"
 )
 
 func main() {
@@ -20,10 +21,10 @@ func main() {
 	tc := oauth2.NewClient(ctx, ts)
 	client := github.NewClient(tc)
 
-	waitingPRs := make([]domain.WaitingPR, 0)
+	waitingPRsByList := make(map[string][]domain.WaitingPR)
 
 	workingDir, _ := os.Getwd()
-	userMap := usecase.LoadUserMap(workingDir . "/config.yaml")
+	userMap, _ := usecase.LoadUserMap(workingDir + "/config.yml")
 
 	// list all repositories for the authenticated user
 	pulls, _, err := client.PullRequests.List(
@@ -42,23 +43,43 @@ func main() {
 	now := time.Now()
 	for _, pullRequest := range pulls {
 
-		if false == userMap.IsDefined(pullRequest.User.GetLogin()) {
+		if false == userMap.HasGithubUser(pullRequest.User.GetLogin()) {
 			continue
 		}
 
+		slackUserName := userMap.SlackUserName(pullRequest.User.GetLogin())
 		waitingPr := domain.NewWaitingPr(
 			pullRequest,
-			userMap.GetUserName(pullRequest.User.GetLogin()),
+			slackUserName,
 			now.Sub(pullRequest.GetCreatedAt()),
 			now.Sub(pullRequest.GetUpdatedAt()),
 		)
 
 		for _, user := range pullRequest.Assignees {
-			waitingPr.AddReviewStatus(userMap.GetUserName(user.GetLogin()), "assigned")
+			waitingPr.AddReviewStatus(userMap.SlackUserName(user.GetLogin()), "assigned")
 		}
 
-		waitingPRs = append(waitingPRs, *waitingPr)
+		channel := userMap.Channel(slackUserName)
+
+		if _, found := waitingPRsByList[channel]; false == found {
+			waitingPRsByList[channel] = make([]domain.WaitingPR, 0)
+		}
+
+		waitingPRsByList[channel] = append(waitingPRsByList[channel], *waitingPr)
+
 	}
 
-	log.Println(waitingPRs)
+	for teamName, waitingPrList := range waitingPRsByList {
+		log.Printf("For team %s:", teamName)
+		for _, pr := range waitingPrList {
+			log.Printf(
+				"Pull request [%d] %s by @%s is waiting for %s",
+				pr.Pr.Number,
+				pr.Pr.GetTitle(),
+				pr.Author,
+				humanize.RelTime(time.Now(), time.Now().Add(pr.WaitingSinceCreated), "", ""),
+			)
+		}
+
+	}
 }
