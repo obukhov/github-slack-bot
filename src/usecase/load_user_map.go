@@ -22,8 +22,6 @@ type Config struct {
 }
 
 func LoadUserMap(path string) (*domain.UserMap, error) {
-	log.Println(path)
-
 	data, err := ioutil.ReadFile(path)
 	if nil != err {
 		log.Println(err)

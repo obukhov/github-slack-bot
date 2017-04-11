@@ -3,13 +3,18 @@ package main
 import (
 	"github.com/obukhov/github-slack-bot/src/domain"
 	"github.com/obukhov/github-slack-bot/src/usecase"
-	"github.com/google/go-github/github"
-	"golang.org/x/oauth2"
 	"context"
 	"log"
 	"os"
 	"time"
+	"fmt"
+
+	"github.com/google/go-github/github"
+	"github.com/nlopes/slack"
 	"github.com/dustin/go-humanize"
+	"golang.org/x/oauth2"
+	"github.com/lucasb-eyer/go-colorful"
+	"strings"
 )
 
 func main() {
@@ -32,8 +37,8 @@ func main() {
 		os.Getenv("GITHUB_OWNER"),
 		os.Getenv("GITHUB_REPO"),
 		&github.PullRequestListOptions{
-
-			ListOptions: github.ListOptions{PerPage: 100}},
+			ListOptions: github.ListOptions{PerPage: 100},
+		},
 	)
 
 	if nil != err {
@@ -42,7 +47,6 @@ func main() {
 
 	now := time.Now()
 	for _, pullRequest := range pulls {
-
 		if false == userMap.HasGithubUser(pullRequest.User.GetLogin()) {
 			continue
 		}
@@ -50,7 +54,7 @@ func main() {
 		slackUserName := userMap.SlackUserName(pullRequest.User.GetLogin())
 		waitingPr := domain.NewWaitingPr(
 			pullRequest,
-			slackUserName,
+			pullRequest.User.GetLogin(),
 			now.Sub(pullRequest.GetCreatedAt()),
 			now.Sub(pullRequest.GetUpdatedAt()),
 		)
@@ -69,17 +73,58 @@ func main() {
 
 	}
 
+	apiClient := slack.New(os.Getenv("SLACK_TOKEN"))
 	for teamName, waitingPrList := range waitingPRsByList {
-		log.Printf("For team %s:", teamName)
+		attachments := make([]slack.Attachment, 0)
 		for _, pr := range waitingPrList {
-			log.Printf(
-				"Pull request [%d] %s by @%s is waiting for %s",
-				pr.Pr.Number,
-				pr.Pr.GetTitle(),
-				pr.Author,
-				humanize.RelTime(time.Now(), time.Now().Add(pr.WaitingSinceCreated), "", ""),
-			)
+			assigneeNames := make([]string, 0)
+			for _, assignee := range pr.Pr.Assignees {
+				assigneeNames = append(assigneeNames, "@"+userMap.SlackUserName(assignee.GetLogin()))
+			}
+
+			assignees := ""
+			if len(assigneeNames) > 0 {
+				assignees = fmt.Sprintf("assigned to %s ", strings.Join(assigneeNames, ", "))
+			}
+
+			waitingFor := humanize.RelTime(now, now.Add(pr.WaitingSinceCreated), "", "")
+
+			attachments = append(attachments, slack.Attachment{
+				Title:     fmt.Sprintf(pr.Pr.GetTitle()),
+				TitleLink: pr.Pr.GetHTMLURL(),
+				Color:     colorful.HappyColor().Hex(),
+				ThumbURL:  pr.Pr.User.GetAvatarURL(),
+				Text: fmt.Sprintf(
+					"by %s %sis waiting for %s",
+					pr.Author,
+					assignees,
+					waitingFor,
+				),
+			})
+
+		}
+
+		pullReqCount := len(attachments)
+		if pullReqCount > 0 {
+			_, _, err := apiClient.PostMessage(
+				teamName,
+				fmt.Sprintf("You have %d pull requests unattended", pullReqCount),
+				slack.PostMessageParameters{
+					Username:    "github",
+					IconEmoji:   ":cat:",
+					Parse:       "full",
+					Attachments: attachments,
+				});
+			if nil == err {
+				log.Printf("Post message to channel %s about %d pull requests", teamName, pullReqCount)
+			} else {
+				log.Printf("Error posting message about %d pull requests to channel %s: %s", pullReqCount, teamName, err.Error())
+			}
+		} else {
+			log.Printf("No pull requests for team %s", teamName)
+
 		}
 
 	}
+
 }

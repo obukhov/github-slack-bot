@@ -1,5 +1,5 @@
-hash: a01c0c94aef38b11db3fc0b487eb91c9c4fcd0ea37869040ced6c7f391fb11af
-updated: 2017-04-10T19:01:50.836597162+02:00
+hash: 90987a6d97bd3043ee9421d5da9e6d20d2907cecba98d25b362c5e0b2990a722
+updated: 2017-04-11T18:25:59.308742773+02:00
 imports:
 - name: github.com/dustin/go-humanize
   version: 259d2a102b871d17f30e3cd9881a642961a1e486
@@ -17,9 +17,14 @@ imports:
   version: 53e6ce116135b80d037921a7fdd5138cf32d7a8a
   subpackages:
   - query
+- name: github.com/lucasb-eyer/go-colorful
+  version: c900de9dbbc73129068f5af6a823068fc5f2308c
+- name: github.com/nlopes/slack
+  version: 5bdec13b7f814e15f59a846bcbc2f64cd71f7888
 - name: golang.org/x/net
   version: ffcf1bedda3b04ebb15a168a59800a73d6dc0f4d
   subpackages:
+  - websocket
   - context
 - name: golang.org/x/oauth2
   version: 7fdf09982454086d5570c7db3e11f360194830ca
